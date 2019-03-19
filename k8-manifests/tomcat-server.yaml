@@ -120,7 +120,7 @@ spec:
       volumes:
         - name: tomcat-server
           persistentVolumeClaim:
-          claimName: tomcat-server
+            claimName: tomcat-server
 ---
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
