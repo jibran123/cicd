@@ -2,9 +2,4 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: jp-test
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: cicd

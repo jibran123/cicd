@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: tomcat-server
-  namespace: jp-test
+  namespace: cicd
   labels:
     app: tomcat-server
 data:
@@ -13,7 +13,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name:  tomcat-server
-  namespace: jp-test
+  namespace: cicd
   labels:
     app: tomcat-server
 data:
@@ -24,7 +24,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tomcat-server
-  namespace: jp-test
+  namespace: cicd
 spec:
   selector:
     app: tomcat-server
@@ -37,7 +37,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: tomcat-server
-  namespace: jp-test
+  namespace: cicd
   labels:
     type: local
     name: tomcat-server
@@ -54,27 +54,29 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: tomcat-server
-  namespace: jp-test
+  namespace: cicd
 spec:
-  storageClassName: manual
-  accessModes:
-  - ReadWriteMany
-  resources:
-    requests:
-     storage: 10Gi
-  selector:
-    matchLabels:
+    storageClassName: manual
+    dataSource:
       name: tomcat-server
+      kind: VolumeSnapshot
+      apiGroup: snapshot.storage.k8s.io
+    accessModes:
+    - ReadWriteMany
+    resources:
+      requests:
+        storage: 10Gi
+    selector:
+      matchLabels:
+        name: tomcat-server
+        type: local
 ---
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: tomcat-server
-  namespace: jp-test
+  namespace: cicd
 spec:
-  selector:
-    matchLabels:
-      app: tomcat-server
   template:
     metadata:
       labels:
@@ -124,10 +126,10 @@ apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
   name: tomcat-server
-  namespace: jp-test
+  namespace: cicd
 spec:
   scaleTargetRef:
-    apiVersion: apps/v1
+    apiVersion: extensions/v1beta1
     kind: Deployment
     name: tomcat-server
   minReplicas: 1
