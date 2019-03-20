@@ -1,5 +1,9 @@
 #!/bin/sh
 namespace=$1
+if [ -z "$namespace" ]; then
+    echo "No namespace passed. Exiting the code by marking the test as failed. Please manually execute \"kubectl get pods -n namespace-name\""
+    exit 1
+fi
 kubectl get pods -n $namespace | awk 'FNR > 1 {print $0}' > /tmp/kubePodsOutput
 flag=$false
 while read pods
