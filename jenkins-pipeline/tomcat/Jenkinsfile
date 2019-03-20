@@ -1,0 +1,115 @@
+pipeline {
+    agent any
+    stages {
+        stage('Check if Ansible is Available') {
+            steps {
+                echo "====++++Checking whether ansible exists or not++++===="
+                sh 'ansible --version'
+            }
+            post {
+                success {
+                    echo "====++++Ansible is available++++===="
+                }
+                failure {
+                    echo "====++++Ansible Not Found. Please install latest version of ansible++++===="
+                }
+            }
+        }
+        stage("Check if Minikube available and up and running") {
+            steps {
+                echo "====++++Executing Check if Minikube available and up and running++++===="
+                sh 'minikube version | grep \"minikube version: *\"'
+                echo "Minikube is installed and available in bin"
+                sh 'minikube status | grep \"host: Running\"'
+                echo "Minikube is Up and running."
+                sh 'minikube status | grep \"kubelet: Running\"'
+                echo "Kubelet is up and running."
+            }
+            post{
+                success{
+                    echo "====++++We are now ready to start deployment on k8 cluster++++===="
+                }
+                failure{
+                    echo "====++++Please install minikube and start the minikube service by using minikube start command++++===="
+                }
+            }
+        }
+        stage('Checkout - clone the repository') {
+            steps {
+                echo "====++++Cloning the repository++++===="
+                checkout([$class: 'GitSCM', branches: [[name: 'master']],
+                        extensions: [[$class: 'LocalBranch', localBranch: 'expected']],
+                        userRemoteConfigs: [[url: 'https://github.com/jibran123/cicd',
+                        credentialsId: 'jibran-github']]])
+            }
+            post {
+                success {
+                    echo "====++++Repository Cloned successfully++++===="
+                }
+                failure {
+                    echo "====++++Could not cloned the repository. Please check the repo URL and credentials++++===="
+                }
+            }
+        }
+        stage("Check whether manisfest exists") {
+            steps {
+                echo "====++++executing Check whether manisfest exists++++===="
+                sh "ls k8-manifests/*.yaml"
+            }
+            post {
+                success {
+                    echo "====++++k8 manifests found successfully. Proceeding to deploy on k8 cluster++++===="
+                }
+                failure {
+                    echo "====++++Could not find Manifest at specified location. Please check the repository and place the k8 manifests at correct location++++===="
+                }
+            }
+        }
+        stage("Run yamllint test") {
+            steps {
+                echo "====++++Checking if yamllint is installed++++===="
+                sh 'yamllint --version'
+                echo "====++++executing executing YAMLLINT on all manifests++++===="
+                sh 'yamllint k8-manifests/'
+            }
+            post {
+                success {
+                    echo "====++++No Errors found. Manifest looks great :). Proceeding with actual deployment++++===="
+                }
+                failure{
+                    echo "====++++yamllint found errors. Please check logs for more details. P.S - If yamllint is not installed run pip install yamllint++++===="
+                }
+            }
+        }
+        stage("Deploy to k8 cluster minikube") {
+            steps {
+                echo "====++++Executing Deploy to k8 cluster minikube++++===="
+                sh 'kubectl apply -f k8-manifests/'
+            }
+            post {
+                success {
+                    echo "====++++Succesfully Deployed to Minikube cluster++++===="
+                }
+                failure {
+                    echo "====++++Failed to Deploy to minikube cluster++++===="
+                }
+            }
+        }
+        stage("Check minikube cluster") {
+            steps {
+                echo "====++++Waiting until pods are created and up and running++++===="
+                sleep 60
+                echo "====++++Checking the cluster to get the latest status of pods++++===="
+                sh 'sh scripts/checkDeployments.sh'
+            }
+            post {
+                success {
+                    echo "====++++All pods are up and running. Deployment successful++++===="
+                }
+                failure {
+                    echo "====++++All pods are not in healthy state. Please execute kubectl logs <podname> -n <namespace> to troubleshoot++++===="
+                }
+            }
+        }
+    }
+}
