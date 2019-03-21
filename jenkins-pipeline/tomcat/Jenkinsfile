@@ -98,7 +98,7 @@ pipeline {
                 echo "====++++Waiting until pods are created and up and running++++===="
                 sleep 60
                 echo "====++++Checking the cluster to get the latest status of pods++++===="
-                sh 'sh scripts/checkDeployments.sh cicd'
+                sh 'sh scripts/checkDeployments.sh {namespace}'
             }
             post {
                 success {
