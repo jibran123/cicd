@@ -67,17 +67,15 @@ pipeline {
         }
         stage("Run yamllint test") {
             steps {
-                echo "====++++Checking if yamllint is installed++++===="
-                sh 'yamllint --version'
-                echo "====++++executing executing YAMLLINT on all manifests++++===="
-                sh 'yamllint k8-manifests/'
+                echo "====++++Executing YAMLLINT on all k8 manifests++++===="
+                sh 'sh scripts/yamllint.sh'
             }
             post {
                 success {
-                    echo "====++++No Errors found. Manifest looks great :). Proceeding with actual deployment++++===="
+                    echo "====++++No Errors found. Manifest looks great :). Proceeding with deployment++++===="
                 }
                 failure{
-                    echo "====++++yamllint found errors. Please check logs for more details. P.S - If yamllint is not installed run pip install yamllint++++===="
+                    echo "====++++yamllint found errors. Please check logs for more details.++++===="
                 }
             }
         }
