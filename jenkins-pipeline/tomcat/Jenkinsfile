@@ -1,6 +1,23 @@
 pipeline {
     agent any
     stages {
+        stage('Checkout - clone the repository') {
+            steps {
+                echo "====++++Cloning the repository++++===="
+                checkout([$class: 'GitSCM', branches: [[name: 'master']],
+                        extensions: [[$class: 'LocalBranch', localBranch: 'expected']],
+                        userRemoteConfigs: [[url: 'https://github.com/jibran123/cicd',
+                        credentialsId: 'jibran-github']]])
+            }
+            post {
+                success {
+                    echo "====++++Repository Cloned successfully++++===="
+                }
+                failure {
+                    echo "====++++Could not cloned the repository. Please check the repo URL and credentials++++===="
+                }
+            }
+        }
         stage('Check if Ansible is Available') {
             steps {
                 echo "====++++Checking whether ansible exists or not++++===="
@@ -26,23 +43,6 @@ pipeline {
                 }
                 failure{
                     echo "====++++Please install minikube and start the minikube service by using minikube start command++++===="
-                }
-            }
-        }
-        stage('Checkout - clone the repository') {
-            steps {
-                echo "====++++Cloning the repository++++===="
-                checkout([$class: 'GitSCM', branches: [[name: 'master']],
-                        extensions: [[$class: 'LocalBranch', localBranch: 'expected']],
-                        userRemoteConfigs: [[url: 'https://github.com/jibran123/cicd',
-                        credentialsId: 'jibran-github']]])
-            }
-            post {
-                success {
-                    echo "====++++Repository Cloned successfully++++===="
-                }
-                failure {
-                    echo "====++++Could not cloned the repository. Please check the repo URL and credentials++++===="
                 }
             }
         }
