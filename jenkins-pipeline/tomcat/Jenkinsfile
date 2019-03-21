@@ -15,15 +15,10 @@ pipeline {
                 }
             }
         }
-        stage("Check if Minikube available and up and running") {
+        stage("Check if Minikube is setup and running") {
             steps {
-                echo "====++++Executing Check if Minikube available and up and running++++===="
-                sh 'minikube version | grep \"minikube version: *\"'
-                echo "Minikube is installed and available in bin"
-                sh 'minikube status | grep \"host: Running\"'
-                echo "Minikube is Up and running."
-                sh 'minikube status | grep \"kubelet: Running\"'
-                echo "Kubelet is up and running."
+                echo "====++++Executing Check if Minikube is setup and running++++===="
+                sh 'sh scripts/configureMinikube.sh'
             }
             post{
                 success{

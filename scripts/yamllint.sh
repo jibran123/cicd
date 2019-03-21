@@ -1,5 +1,4 @@
 #!/bin/sh
-echo "This script is tested on CentOS 7.6"
 if [ -f /usr/bin/yamllint ]; then
     echo "yamllint is already installed. Proceeding to test the k8 manifests"
 else
