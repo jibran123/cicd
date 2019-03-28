@@ -23,11 +23,27 @@ pipeline {
                 echo "====++++Executing Start Docker++++===="
                 sh 'sh scripts/enableDocker.sh'
             }
-            post{
-                success{
+            post {
+                success {
                     echo "====++++Docker is now up and running. Moving on to check minikube++++===="
                 }
-                failure{
+                failure {
+                    echo "====++++Please install docker manually and start the docker service by using `systectl start docker.service` command++++===="
+                }
+            }
+        }
+        stage("Build and Push Docker") {
+            steps {
+                withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'dockerhub',usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                    echo "====++++Executing Build and Push Docker++++===="
+                    sh 'sh scripts/dockerImageBuilder.sh $USERNAME $PASSWORD $application $incrementMajorVersion'
+                }
+            }
+            post {
+                success {
+                    echo "====++++Docker is now up and running. Moving on to check minikube++++===="
+                }
+                failure {
                     echo "====++++Please install docker manually and start the docker service by using `systectl start docker.service` command++++===="
                 }
             }
@@ -37,11 +53,11 @@ pipeline {
                 echo "====++++Executing Check if Minikube is setup and running++++===="
                 sh 'sh scripts/configureMinikube.sh'
             }
-            post{
-                success{
+            post {
+                success {
                     echo "====++++We are now ready to start deployment on k8 cluster++++===="
                 }
-                failure{
+                failure {
                     echo "====++++Please install minikube and start the minikube service by using minikube start command++++===="
                 }
             }
@@ -69,7 +85,7 @@ pipeline {
                 success {
                     echo "====++++No Errors found. Manifest looks great :). Proceeding with deployment++++===="
                 }
-                failure{
+                failure {
                     echo "====++++yamllint found errors. Please check logs for more details.++++===="
                 }
             }
