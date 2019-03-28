@@ -1,5 +1,4 @@
 #!/bin/sh
-echo "Starting with system configuration."
 echo "This script will ensure that all pre-requisites are met to deploy on minikube setup."
 echo "=============1. VirtualBox============="
 echo "Checking if Virtual box is installed or not."
@@ -46,7 +45,7 @@ if [ -z /usr/bin/minikube -a -z /usr/local/bin/minikube ]; then
 else
     echo "Minikube is already installed and ready to use."
 fi
-echo "=============3. Initiating minikube============="
+echo "=============4. Initiating minikube============="
 echo "Checking if minikube is up and running"
 minikubeStatus=`minikube status | grep host | awk '{print $2}'`
 if [ "$minikubeStatus" == "Running" ]; then
