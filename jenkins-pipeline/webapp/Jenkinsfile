@@ -33,11 +33,13 @@ pipeline {
             }
         }
         stage("Build and Push Docker") {
+            environment {
+                DOCKERHUBCREDS = credentials('dockerhub')
+                dockerhubUsername = "pain13"
+            }
             steps {
-                withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'dockerhub',usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-                    echo "====++++Executing Build and Push Docker++++===="
-                    sh 'sh scripts/dockerImageBuilder.sh $USERNAME $PASSWORD $application $incrementMajorVersion'
-                }
+                echo "====++++Executing Build and Push Docker++++===="
+                sh 'sh scripts/dockerImageBuilder.sh $dockerhubUsername $DOCKERHUBCREDS_PSW $application $incrementMajorVersion'
             }
             post {
                 success {
