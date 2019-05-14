@@ -10,7 +10,7 @@ spec:
   type: NodePort
   ports:
     - port: 80
-      targetPort: 8088
+      targetPort: 80
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -21,11 +21,11 @@ spec:
   template:
     metadata:
       labels:
-        app: tomcat-server
+        app: webapp
     spec:
       containers:
-        - name: tomcat-server
-          image: docker.io/tomcat
+        - name: webapp
+          image: docker.io/pain13/webserver:1.1
           imagePullPolicy: IfNotPresent
           resources:
             limits:
@@ -44,3 +44,17 @@ spec:
             initialDelaySeconds: 300
             successThreshold: 1
             timeoutSeconds: 10
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: webapp
+  namespace: cicd
+spec:
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: webapp
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 20
