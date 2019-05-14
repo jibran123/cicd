@@ -43,7 +43,7 @@ spec:
               port: 80
             initialDelaySeconds: 300
             successThreshold: 1
-            timeoutSeconds: 10
+            timeoutSeconds: 300
 ---
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler

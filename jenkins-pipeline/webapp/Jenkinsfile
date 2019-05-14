@@ -1,5 +1,10 @@
 pipeline {
     agent any
+    environment {
+        newDockerVersion = null
+        DOCKERHUBCREDS = credentials('dockerhub')
+        dockerhubUsername = "pain13"
+    }
     stages {
         stage('Checkout - clone the repository') {
             steps {
@@ -18,7 +23,7 @@ pipeline {
                 }
             }
         }
-        stage("Start Docker") {
+        stage("Check whether Docker is running") {
             steps {
                 echo "====++++Executing Start Docker++++===="
                 sh 'sh scripts/enableDocker.sh'
@@ -32,11 +37,7 @@ pipeline {
                 }
             }
         }
-        stage("Build and Push Docker") {
-            environment {
-                DOCKERHUBCREDS = credentials('dockerhub')
-                dockerhubUsername = "pain13"
-            }
+        stage("Build docker image and push it to dockerhub") {
             steps {
                 echo "====++++Executing Build and Push Docker++++===="
                 sh 'sh scripts/dockerImageBuilder.sh $dockerhubUsername $DOCKERHUBCREDS_PSW $application $incrementMajorVersion'
@@ -67,7 +68,7 @@ pipeline {
         stage("Check whether manisfest exists") {
             steps {
                 echo "====++++executing Check whether manisfest exists++++===="
-                sh "ls k8-manifests/*.yaml"
+                sh "ls k8-manifests/$application/*.yaml"
             }
             post {
                 success {
@@ -76,6 +77,13 @@ pipeline {
                 failure {
                     echo "====++++Could not find Manifest at specified location. Please check the repository and place the k8 manifests at correct location++++===="
                 }
+            }
+        }
+        stage("Update the correct version in manifest") {
+            steps {
+                echo "====++++executing Update the correct version in manifest++++===="
+                $newDockerVersion = sh "sh scripts/getLatestDockerVersion.sh $dockerhubUsername $application"
+                echo $newDockerVersion
             }
         }
         stage("Run yamllint test") {
@@ -95,7 +103,7 @@ pipeline {
         stage("Deploy to k8 cluster minikube") {
             steps {
                 echo "====++++Executing Deploy to k8 cluster minikube++++===="
-                sh 'kubectl apply -f k8-manifests/'
+                sh 'kubectl apply -f k8-manifests/$application/'
             }
             post {
                 success {
