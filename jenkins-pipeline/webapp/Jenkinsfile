@@ -1,10 +1,5 @@
 pipeline {
     agent any
-    environment {
-        newDockerVersion = null
-        DOCKERHUBCREDS = credentials('dockerhub')
-        dockerhubUsername = "pain13"
-    }
     stages {
         stage('Checkout - clone the repository') {
             steps {
@@ -38,6 +33,10 @@ pipeline {
             }
         }
         stage("Build docker image and push it to dockerhub") {
+            environment {
+                DOCKERHUBCREDS = credentials('dockerhub')
+                dockerhubUsername = "pain13"
+            }
             steps {
                 echo "====++++Executing Build and Push Docker++++===="
                 sh 'sh scripts/dockerImageBuilder.sh $dockerhubUsername $DOCKERHUBCREDS_PSW $application $incrementMajorVersion'
@@ -79,17 +78,24 @@ pipeline {
                 }
             }
         }
-        stage("Update the correct version in manifest") {
+        stage("Update the new docker image version in manifest") {
             steps {
                 echo "====++++executing Update the correct version in manifest++++===="
-                $newDockerVersion = sh "sh scripts/getLatestDockerVersion.sh $dockerhubUsername $application"
-                echo $newDockerVersion
+                sh "sh scripts/updateManifestToUseNewlyCreatedDockerImage.sh $dockerhubUsername $application"
+            }
+        }
+        post {
+            success {
+                echo "Successfully updated manifest with newly created docker version"
+            }
+            failure {
+                echo "Failed to update the k8 manifests with new docker version. Please try again"
             }
         }
         stage("Run yamllint test") {
             steps {
                 echo "====++++Executing YAMLLINT on all k8 manifests++++===="
-                sh 'sh scripts/yamllint.sh'
+                sh 'sh scripts/yamllint.sh $application'
             }
             post {
                 success {
@@ -100,7 +106,7 @@ pipeline {
                 }
             }
         }
-        stage("Deploy to k8 cluster minikube") {
+        stage("Deploy to k8s cluster minikube") {
             steps {
                 echo "====++++Executing Deploy to k8 cluster minikube++++===="
                 sh 'kubectl apply -f k8-manifests/$application/'
@@ -119,7 +125,7 @@ pipeline {
                 echo "====++++Waiting until pods are created and up and running++++===="
                 sleep 60
                 echo "====++++Checking the cluster to get the latest status of pods++++===="
-                sh 'sh scripts/checkDeployments.sh ${namespace}'
+                sh 'sh scripts/checkDeployments.sh ${application}'
             }
             post {
                 success {

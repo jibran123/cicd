@@ -19,7 +19,7 @@ else
         echo "Successfully Installed yamllint with version - $yaml"
     fi
 fi
-yamlint=`yamllint k8-manifests/`
+yamlint=`yamllint k8-manifests/"$1"/`
 if [ -z "$yamllint" ]; then
     echo "All k8 manifests have passed yamllint tests"
 else
