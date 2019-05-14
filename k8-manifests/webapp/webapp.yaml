@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: webapp
-          image: docker.io/pain13/webserver:newTag
+          image: docker.io/pain13/webapp:newTag
           imagePullPolicy: IfNotPresent
           resources:
             limits:

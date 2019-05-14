@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    environment {
+        DOCKERHUBCREDS = credentials('dockerhub')
+        dockerhubUsername = "pain13"
+    }
     stages {
         stage('Checkout - clone the repository') {
             steps {
@@ -33,10 +37,6 @@ pipeline {
             }
         }
         stage("Build docker image and push it to dockerhub") {
-            environment {
-                DOCKERHUBCREDS = credentials('dockerhub')
-                dockerhubUsername = "pain13"
-            }
             steps {
                 echo "====++++Executing Build and Push Docker++++===="
                 sh 'sh scripts/dockerImageBuilder.sh $dockerhubUsername $DOCKERHUBCREDS_PSW $application $incrementMajorVersion'
@@ -83,13 +83,13 @@ pipeline {
                 echo "====++++executing Update the correct version in manifest++++===="
                 sh "sh scripts/updateManifestToUseNewlyCreatedDockerImage.sh $dockerhubUsername $application"
             }
-        }
-        post {
-            success {
-                echo "Successfully updated manifest with newly created docker version"
-            }
-            failure {
-                echo "Failed to update the k8 manifests with new docker version. Please try again"
+            post {
+                success {
+                    echo "Successfully updated manifest with newly created docker version"
+                }
+                failure {
+                    echo "Failed to update the k8 manifests with new docker version. Please try again"
+                }
             }
         }
         stage("Run yamllint test") {
