@@ -71,11 +71,12 @@ if [[ "$checkLogin" =~ "Login Succeeded" ]]; then
                 exit 1
             fi
         else
-            newVersion=`echo "$latestVersion + 0.1" | bc`
-            compare=`echo "$newVersion < 1" | bc`
-            if [ "$compare" -eq 1 ]; then
-                newVersion=`echo "0$newVersion"`
-            fi
+            currentVersion=$latestVersion
+            tempString="${currentVersion%%.*}"
+            dotPos="$(( ${#tempString} + 1 ))"
+            postDecimalNumber=${currentVersion:$dotPos}
+            newVersionPostDecimal=`expr $postDecimalNumber + 1`
+            newVersion=$(sed s/$postDecimalNumber/$newVersionPostDecimal/g <<< $currentVersion)
             dockerBuild=`docker build -t "$1"/"$3":"$newVersion" docker/"$3"/`
             if [[ "$dockerBuild" =~ "Successfully built" ]]; then
                 echo "Docker image build successfully"

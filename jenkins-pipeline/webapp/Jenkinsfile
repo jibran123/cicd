@@ -6,9 +6,11 @@ pipeline {
     }
     parameters {
         choice(name: 'application',
-            choices: 'webapp')
+            choices: 'webapp',
+            description: 'Select the application to be deployed')
         choice(name: 'incrementMajorVersion',
-            choices: 'yes\nno')
+            choices: 'yes\nno',
+            description: 'yes=x+1.y and no=x.y+1')
     }
     stages {
         stage('Checkout - clone the repository') {
