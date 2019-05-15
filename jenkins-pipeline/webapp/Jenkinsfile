@@ -4,6 +4,12 @@ pipeline {
         DOCKERHUBCREDS = credentials('dockerhub')
         dockerhubUsername = "pain13"
     }
+    parameters {
+        choice(name: 'application',
+            choices: 'webapp')
+        choice(name: 'incrementMajorVersion',
+            choices: 'yes\nno')
+    }
     stages {
         stage('Checkout - clone the repository') {
             steps {
